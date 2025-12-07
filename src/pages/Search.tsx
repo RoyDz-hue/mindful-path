@@ -55,7 +55,7 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [warning, setWarning] = useState<string | null>(null);
+  const [motivation, setMotivation] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   
@@ -126,7 +126,7 @@ export default function SearchPage() {
 
     setIsSearching(true);
     setResults([]);
-    setWarning(null);
+    setMotivation(null);
     setSuggestions([]);
 
     try {
@@ -140,9 +140,14 @@ export default function SearchPage() {
       // Add to recent searches
       setRecentSearches(prev => [searchQuery, ...prev.filter(s => s !== searchQuery)].slice(0, 5));
 
-      // Call AI-powered search
+      // Call AI-powered search with user context for supportive responses
       const response = await supabase.functions.invoke("search-content", {
-        body: { query: searchQuery, type: "video" }
+        body: { 
+          query: searchQuery, 
+          type: "video",
+          remainingMinutes: remainingMinutes,
+          currentDay: currentDay
+        }
       });
 
       if (response.error) throw new Error(response.error.message);
@@ -150,7 +155,7 @@ export default function SearchPage() {
       const data = response.data;
       if (data.success) {
         setResults(data.results || []);
-        setWarning(data.warning);
+        setMotivation(data.motivation);
         setSuggestions(data.suggestions || []);
 
         // Update results count
@@ -178,13 +183,12 @@ export default function SearchPage() {
     if (!user || !profile) return;
 
     const dailyLimit = getDailyLimit(profile.current_day);
-    const remainingMinutes = Math.max(0, dailyLimit - (profile.total_watch_time_today || 0));
+    const currentRemaining = Math.max(0, dailyLimit - (profile.total_watch_time_today || 0));
     
-    if (remainingMinutes <= 0) {
+    if (currentRemaining <= 0) {
       toast({
-        title: "Daily Limit Reached",
-        description: "You've used all your viewing time for today. Try wellness exercises instead.",
-        variant: "destructive",
+        title: "Time's Up for Today",
+        description: "You've completed your viewing for today. Great job staying on track! Come back tomorrow.",
       });
       return;
     }
@@ -210,7 +214,7 @@ export default function SearchPage() {
 
     toast({
       title: "Session Started",
-      description: `You have ${remainingMinutes} minutes remaining today.`,
+      description: `You have ${currentRemaining} minutes remaining. I'll keep track for you.`,
     });
   };
 
@@ -242,8 +246,13 @@ export default function SearchPage() {
 
     if (wasAutoStopped) {
       toast({
-        title: "Time's Up",
-        description: "Your daily viewing limit has been reached. Great job managing your time!",
+        title: "Session Complete",
+        description: "You've reached your goal for today. Great progress on your journey!",
+      });
+    } else {
+      toast({
+        title: "Session Ended",
+        description: "Good work staying within your limits. See you tomorrow!",
       });
     }
 
@@ -416,20 +425,20 @@ export default function SearchPage() {
             </Card>
 
             {/* Search Results */}
-            {(results.length > 0 || warning || isSearching) && (
+            {(results.length > 0 || motivation || isSearching) && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Results</h2>
                 {isSearching ? (
                   <Card variant="glass" className="p-12">
                     <div className="flex flex-col items-center justify-center gap-4">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      <p className="text-muted-foreground">AI is finding safe content...</p>
+                      <p className="text-muted-foreground">Finding content for you...</p>
                     </div>
                   </Card>
                 ) : (
                   <SearchResults
                     results={results}
-                    warning={warning}
+                    motivation={motivation}
                     suggestions={suggestions}
                     onPlay={handlePlay}
                     onSave={handleSave}
@@ -442,19 +451,19 @@ export default function SearchPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Safety Info */}
+            {/* Progress Info */}
             <Card variant="glass">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Shield className="w-5 h-5 text-primary" />
-                  Controlled Environment
+                  Your Progress
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>• All content opens in sandboxed viewer</p>
-                <p>• Session time is tracked automatically</p>
-                <p>• Auto-lockout when time expires</p>
-                <p>• AI monitors for recovery-safe content</p>
+                <p>• Day {currentDay} of 7 - you're doing great</p>
+                <p>• {remainingMinutes} minutes left today</p>
+                <p>• All sessions tracked privately</p>
+                <p>• Gradual reduction is working</p>
               </CardContent>
             </Card>
 
@@ -466,18 +475,18 @@ export default function SearchPage() {
               loading={savedLoading}
             />
 
-            {/* Tips Card */}
-            <Card variant="warm">
+            {/* Support Card - Non-judgmental */}
+            <Card variant="sanctuary">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-sanctuary-coral flex-shrink-0 mt-0.5" />
+                  <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                   <div className="space-y-2">
-                    <p className="font-medium text-sanctuary-coral">Managing Urges</p>
+                    <p className="font-medium">After Your Session</p>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Take 3 deep breaths first</li>
-                      <li>• Consider talking to your AI guide</li>
-                      <li>• Try a wellness exercise instead</li>
-                      <li>• Journal about what triggered you</li>
+                      <li>• Your AI guide is here if you want to talk</li>
+                      <li>• View your progress analytics anytime</li>
+                      <li>• Journal your thoughts privately</li>
+                      <li>• Tomorrow's limit: {getDailyLimit(Math.min(7, currentDay + 1))}min</li>
                     </ul>
                   </div>
                 </div>
