@@ -331,6 +331,7 @@ export default function SearchPage() {
           url={activeContent.url}
           title={activeContent.title}
           remainingSeconds={remainingMinutes * 60}
+          userId={user?.id}
           onClose={() => setActiveContent(null)}
           onTimeUpdate={handleTimeUpdate}
           onSessionEnd={handleSessionEnd}
