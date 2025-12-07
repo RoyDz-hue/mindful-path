@@ -40,3 +40,6 @@ verify_jwt = false
 
 [functions.search-content]
 verify_jwt = false
+
+[functions.fallback-downloader]
+verify_jwt = false
