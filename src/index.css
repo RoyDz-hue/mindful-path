@@ -2,95 +2,131 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Sanctuary - Soft sage/teal for healing and growth */
+    --background: 150 20% 98%;
+    --foreground: 200 25% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 150 15% 99%;
+    --card-foreground: 200 25% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 150 15% 99%;
+    --popover-foreground: 200 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Sage green for growth and healing */
+    --primary: 162 35% 42%;
+    --primary-foreground: 150 30% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Warm sand for comfort */
+    --secondary: 35 30% 94%;
+    --secondary-foreground: 200 25% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - Soft gray-green */
+    --muted: 150 15% 92%;
+    --muted-foreground: 200 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Soft coral for encouragement */
+    --accent: 15 65% 65%;
+    --accent-foreground: 15 80% 20%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 150 15% 88%;
+    --input: 150 15% 88%;
+    --ring: 162 35% 42%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom sanctuary tokens */
+    --sanctuary-sage: 162 35% 42%;
+    --sanctuary-sage-light: 162 30% 92%;
+    --sanctuary-teal: 175 40% 45%;
+    --sanctuary-coral: 15 65% 65%;
+    --sanctuary-coral-soft: 15 50% 92%;
+    --sanctuary-sand: 35 30% 94%;
+    --sanctuary-warm: 30 25% 97%;
+    --sanctuary-forest: 165 40% 25%;
+    
+    /* Gradients */
+    --gradient-sanctuary: linear-gradient(135deg, hsl(162 35% 42%) 0%, hsl(175 40% 50%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(150 20% 98%) 0%, hsl(162 30% 96%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(35 30% 96%) 0%, hsl(15 40% 95%) 100%);
+    --gradient-calm: linear-gradient(180deg, hsl(162 30% 96%) 0%, hsl(150 20% 99%) 100%);
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(162 35% 42% / 0.1);
+    --shadow-card: 0 8px 32px -8px hsl(200 25% 15% / 0.08);
+    --shadow-glow: 0 0 40px hsl(162 35% 42% / 0.15);
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 150 15% 97%;
+    --sidebar-foreground: 200 25% 20%;
+    --sidebar-primary: 162 35% 42%;
+    --sidebar-primary-foreground: 150 30% 98%;
+    --sidebar-accent: 150 15% 94%;
+    --sidebar-accent-foreground: 200 25% 20%;
+    --sidebar-border: 150 15% 90%;
+    --sidebar-ring: 162 35% 42%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 200 25% 8%;
+    --foreground: 150 15% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 200 22% 11%;
+    --card-foreground: 150 15% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 200 22% 11%;
+    --popover-foreground: 150 15% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 162 40% 50%;
+    --primary-foreground: 200 25% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 200 20% 18%;
+    --secondary-foreground: 150 15% 92%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 200 20% 16%;
+    --muted-foreground: 150 10% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 15 55% 55%;
+    --accent-foreground: 15 80% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 200 20% 18%;
+    --input: 200 20% 18%;
+    --ring: 162 40% 50%;
+
+    --sanctuary-sage: 162 40% 50%;
+    --sanctuary-sage-light: 162 25% 18%;
+    --sanctuary-teal: 175 35% 45%;
+    --sanctuary-coral: 15 55% 55%;
+    --sanctuary-coral-soft: 15 40% 18%;
+    --sanctuary-sand: 35 20% 18%;
+    --sanctuary-warm: 30 15% 12%;
+    --sanctuary-forest: 165 35% 35%;
+
+    --gradient-sanctuary: linear-gradient(135deg, hsl(162 40% 50%) 0%, hsl(175 35% 55%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(200 25% 8%) 0%, hsl(200 22% 11%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(200 20% 12%) 0%, hsl(15 30% 15%) 100%);
+    --gradient-calm: linear-gradient(180deg, hsl(200 22% 11%) 0%, hsl(200 25% 8%) 100%);
+
+    --shadow-soft: 0 4px 20px -4px hsl(162 40% 50% / 0.15);
+    --shadow-card: 0 8px 32px -8px hsl(0 0% 0% / 0.4);
+    --shadow-glow: 0 0 40px hsl(162 40% 50% / 0.2);
+
+    --sidebar-background: 200 22% 10%;
+    --sidebar-foreground: 150 15% 92%;
+    --sidebar-primary: 162 40% 50%;
+    --sidebar-primary-foreground: 200 25% 8%;
+    --sidebar-accent: 200 20% 16%;
+    --sidebar-accent-foreground: 150 15% 92%;
+    --sidebar-border: 200 20% 16%;
+    --sidebar-ring: 162 40% 50%;
   }
 }
 
@@ -100,6 +136,111 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .text-gradient-sanctuary {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-sanctuary);
+  }
+
+  .bg-gradient-sanctuary {
+    background: var(--gradient-sanctuary);
+  }
+
+  .bg-gradient-soft {
+    background: var(--gradient-soft);
+  }
+
+  .bg-gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .bg-gradient-calm {
+    background: var(--gradient-calm);
+  }
+
+  .shadow-sanctuary {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glass {
+    @apply backdrop-blur-xl bg-card/80;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out forwards;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
+}
+
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
 }
