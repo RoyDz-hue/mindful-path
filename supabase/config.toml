@@ -34,3 +34,9 @@ enable_confirmations = false
 
 [functions.chat]
 verify_jwt = false
+
+[functions.browserless]
+verify_jwt = false
+
+[functions.search-content]
+verify_jwt = false

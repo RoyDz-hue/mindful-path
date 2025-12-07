@@ -146,6 +146,42 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_content: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          description: string | null
+          id: string
+          source_site: string | null
+          thumbnail_url: string | null
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_site?: string | null
+          thumbnail_url?: string | null
+          title: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_site?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       search_queries: {
         Row: {
           created_at: string
