@@ -21,10 +21,10 @@ serve(async (req) => {
       throw new Error("BROWSERLESS_API_KEY is not configured");
     }
 
-    const { query, type = "video" } = await req.json();
-    console.log(`Searching for: ${query}, type: ${type}`);
+    const { query, type = "video", remainingMinutes = 60, currentDay = 1 } = await req.json();
+    console.log(`Searching for: ${query}, type: ${type}, remaining: ${remainingMinutes}min, day: ${currentDay}`);
 
-    // Use AI to analyze the search query and generate safe search suggestions
+    // Use AI to find content AND provide supportive guidance (NOT blocking)
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,35 +36,60 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a content search assistant for a wellness rehabilitation platform. 
-            Your task is to help users find video content online while maintaining their safety and recovery goals.
-            
-            When given a search query, you should:
-            1. Analyze the intent behind the search
-            2. Generate 3-5 safe, curated video URLs from legitimate video platforms (YouTube, Vimeo, Dailymotion, etc.)
-            3. Provide brief descriptions for each
-            4. Flag if the query seems problematic for recovery
-            
-            Respond in JSON format:
-            {
-              "results": [
-                {
-                  "title": "Video title",
-                  "url": "https://...",
-                  "platform": "YouTube/Vimeo/etc",
-                  "thumbnail": "https://...",
-                  "description": "Brief description",
-                  "duration": "5:30",
-                  "safe": true
-                }
-              ],
-              "warning": null or "Warning message if query is concerning",
-              "suggestions": ["alternative search 1", "alternative search 2"]
-            }`
+            content: `You are a supportive, non-judgmental content search assistant for a harm-reduction wellness platform.
+
+YOUR CORE PHILOSOPHY:
+- ALLOW content viewing (unless time is 0 or content is illegal)
+- TRACK and monitor viewing patterns privately
+- SUPPORT the user with gentle motivation
+- NEVER shame, lecture, or moralize
+- NEVER block or redirect adult content unless it's illegal
+
+THE REDUCTION PROGRAM:
+Day 1: 60 min → Day 2: 40 min → Day 3: 20 min → Day 4: 10 min → Day 5: 5 min → Day 6: 2 min → Day 7: 0 min
+
+USER'S CURRENT STATE:
+- Day ${currentDay} of program
+- ${remainingMinutes} minutes remaining today
+
+WHEN GENERATING RESULTS:
+1. Find actual video URLs matching the query (from real adult sites if that's what they searched)
+2. Mark all found content as "safe: true" unless it's illegal content
+3. Generate a supportive motivation message (not warning, not blocking)
+4. Include the URL the user is likely looking for
+
+YOUR TONE:
+- "You have ${remainingMinutes} minutes remaining. I'll start tracking when you begin."
+- "Good progress - you're on day ${currentDay}. Want me to set a reminder at halfway?"
+- "Ready when you are. I'll keep track of your time."
+
+NEVER SAY:
+- "This content may harm your recovery"
+- "Try these healthy alternatives instead"
+- "This content is inappropriate"
+- "Consider watching something else"
+
+Respond in JSON format:
+{
+  "results": [
+    {
+      "title": "Video title",
+      "url": "https://actual-url-user-wants",
+      "platform": "Platform name",
+      "thumbnail": "https://thumbnail-url-if-available",
+      "description": "Brief neutral description",
+      "duration": "estimated duration",
+      "safe": true
+    }
+  ],
+  "motivation": "Supportive, brief message about their remaining time and progress",
+  "suggestions": ["related search 1", "related search 2"],
+  "canWatch": ${remainingMinutes > 0}
+}`
           },
           {
             role: "user",
-            content: `Find ${type} content for this search query: "${query}"`
+            content: `Find ${type} content for: "${query}"`
           }
         ],
         temperature: 0.7,
@@ -93,7 +118,6 @@ serve(async (req) => {
     // Try to parse the JSON response
     let searchResults;
     try {
-      // Extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         searchResults = JSON.parse(jsonMatch[0]);
@@ -104,9 +128,18 @@ serve(async (req) => {
       console.error("Failed to parse AI response:", content);
       searchResults = {
         results: [],
-        warning: "Unable to process search. Please try a different query.",
-        suggestions: ["relaxation videos", "nature documentaries", "meditation content"]
+        motivation: `You have ${remainingMinutes} minutes remaining today. Try searching again or paste a direct URL.`,
+        suggestions: [],
+        canWatch: remainingMinutes > 0
       };
+    }
+
+    // Ensure all results are marked as safe (we allow viewing)
+    if (searchResults.results) {
+      searchResults.results = searchResults.results.map((r: any) => ({
+        ...r,
+        safe: true
+      }));
     }
 
     console.log(`Found ${searchResults.results?.length || 0} results`);
