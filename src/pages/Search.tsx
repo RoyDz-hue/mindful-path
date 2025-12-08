@@ -14,11 +14,12 @@ import { getDailyLimit } from "@/lib/constants";
 import { 
   Search as SearchIcon, 
   Shield, 
-  AlertTriangle, 
   Clock, 
   Loader2,
   Sparkles,
-  History
+  History,
+  Video,
+  Image as ImageIcon
 } from "lucide-react";
 
 interface SearchResult {
@@ -28,8 +29,11 @@ interface SearchResult {
   thumbnail?: string;
   description: string;
   duration?: string;
+  contentType?: "video" | "image";
   safe: boolean;
 }
+
+type SearchType = "video" | "image";
 
 interface SavedItem {
   id: string;
@@ -53,6 +57,7 @@ export default function SearchPage() {
   const { toast } = useToast();
   
   const [query, setQuery] = useState("");
+  const [searchType, setSearchType] = useState<SearchType>("video");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [motivation, setMotivation] = useState<string | null>(null);
@@ -144,7 +149,7 @@ export default function SearchPage() {
       const response = await supabase.functions.invoke("search-content", {
         body: { 
           query: searchQuery, 
-          type: "video",
+          type: searchType,
           remainingMinutes: remainingMinutes,
           currentDay: currentDay
         }
@@ -269,7 +274,7 @@ export default function SearchPage() {
       url: result.url,
       thumbnail_url: result.thumbnail,
       description: result.description,
-      content_type: "video",
+      content_type: result.contentType || "video",
       source_site: result.platform,
     });
 
@@ -377,13 +382,35 @@ export default function SearchPage() {
             <Card variant="elevated">
               <CardContent className="p-6">
                 <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="space-y-4">
+                  {/* Search Type Toggle */}
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      type="button"
+                      variant={searchType === "video" ? "sanctuary" : "outline"}
+                      size="sm"
+                      onClick={() => setSearchType("video")}
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Videos
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={searchType === "image" ? "sanctuary" : "outline"}
+                      size="sm"
+                      onClick={() => setSearchType("image")}
+                    >
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      Images
+                    </Button>
+                  </div>
+
                   <div className="flex gap-3">
                     <div className="relative flex-1">
                       <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
                       <Input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search for content with AI assistance..."
+                        placeholder={`Search for ${searchType}s with AI assistance...`}
                         className="pl-12 h-12"
                         disabled={remainingMinutes <= 0}
                       />
