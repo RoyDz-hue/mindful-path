@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Bookmark, Heart, Download, Image as ImageIcon } from "lucide-react";
+import { Play, Bookmark, Heart, Download, Image as ImageIcon, Maximize2, ImageOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ImageViewer } from "./ImageViewer";
 
 interface SearchResult {
   title: string;
@@ -21,6 +23,7 @@ interface SearchResultsProps {
   onPlay: (result: SearchResult) => void;
   onSave: (result: SearchResult) => void;
   onSuggestionClick: (suggestion: string) => void;
+  userId?: string;
 }
 
 export function SearchResults({ 
@@ -29,9 +32,22 @@ export function SearchResults({
   suggestions, 
   onPlay, 
   onSave,
-  onSuggestionClick 
+  onSuggestionClick,
+  userId
 }: SearchResultsProps) {
   const { toast } = useToast();
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
+
+  const handleImageError = (index: number) => {
+    setBrokenImages(prev => new Set(prev).add(index));
+  };
+
+  const handleViewFullImage = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageViewerOpen(true);
+  };
 
   const handleDownload = async (result: SearchResult) => {
     try {
@@ -51,7 +67,6 @@ export function SearchResults({
         description: "Image saved successfully.",
       });
     } catch (error) {
-      // Fallback: open in new tab for manual save
       window.open(result.url, '_blank');
       toast({
         title: "Opening Image",
@@ -121,10 +136,22 @@ export function SearchResults({
   }
 
   const isImageSearch = results.length > 0 && results[0]?.contentType === "image";
+  const imageResults = isImageSearch ? results : [];
 
   return (
     <div className="space-y-4">
       <MotivationBanner />
+      
+      {/* Image Viewer Modal */}
+      {isImageSearch && (
+        <ImageViewer
+          images={imageResults}
+          initialIndex={selectedImageIndex}
+          isOpen={imageViewerOpen}
+          onClose={() => setImageViewerOpen(false)}
+          userId={userId}
+        />
+      )}
       
       {isImageSearch ? (
         // Image Grid Layout
@@ -133,18 +160,38 @@ export function SearchResults({
             <Card key={index} variant="elevated" className="overflow-hidden hover:shadow-glow transition-shadow group">
               <CardContent className="p-0">
                 <div className="relative aspect-square bg-muted">
-                  <img 
-                    src={result.thumbnail || result.url} 
-                    alt={result.title}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+                  {brokenImages.has(index) ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
+                      <ImageOff className="w-8 h-8" />
+                      <span className="text-xs">Image unavailable</span>
+                    </div>
+                  ) : (
+                    <img 
+                      src={result.thumbnail || result.url} 
+                      alt={result.title}
+                      className="w-full h-full object-cover cursor-pointer"
+                      loading="lazy"
+                      onClick={() => handleViewFullImage(index)}
+                      onError={() => handleImageError(index)}
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                    />
+                  )}
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button 
                       variant="secondary" 
                       size="sm"
+                      onClick={() => handleViewFullImage(index)}
+                      title="View Full"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
                       onClick={() => handleDownload(result)}
+                      title="Download"
                     >
                       <Download className="w-4 h-4" />
                     </Button>
@@ -152,6 +199,7 @@ export function SearchResults({
                       variant="secondary" 
                       size="sm"
                       onClick={() => onSave(result)}
+                      title="Save to Collection"
                     >
                       <Bookmark className="w-4 h-4" />
                     </Button>
