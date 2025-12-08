@@ -12,13 +12,9 @@ serve(async (req) => {
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const BROWSERLESS_API_KEY = Deno.env.get("BROWSERLESS_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
-    }
-    if (!BROWSERLESS_API_KEY) {
-      throw new Error("BROWSERLESS_API_KEY is not configured");
     }
 
     const { query, type = "video", remainingMinutes = 60, currentDay = 1 } = await req.json();
@@ -43,7 +39,7 @@ YOUR CORE PHILOSOPHY:
 - TRACK and monitor viewing patterns privately
 - SUPPORT the user with gentle motivation
 - NEVER shame, lecture, or moralize
-- NEVER block or redirect adult content unless it's illegal
+- NEVER block or redirect content unless it's illegal
 
 THE REDUCTION PROGRAM:
 Day 1: 60 min → Day 2: 40 min → Day 3: 20 min → Day 4: 10 min → Day 5: 5 min → Day 6: 2 min → Day 7: 0 min
@@ -52,16 +48,21 @@ USER'S CURRENT STATE:
 - Day ${currentDay} of program
 - ${remainingMinutes} minutes remaining today
 
+CONTENT TYPE REQUESTED: ${type}
+
 WHEN GENERATING RESULTS:
-1. Find actual video URLs matching the query (from real adult sites if that's what they searched)
-2. Mark all found content as "safe: true" unless it's illegal content
-3. Generate a supportive motivation message (not warning, not blocking)
-4. Include the URL the user is likely looking for
+1. If type is "video": Find actual video URLs matching the query
+2. If type is "image": Find actual image URLs (direct links to jpg, png, webp, gif) matching the query from image hosting sites, galleries, wallpaper sites, or stock photo sites
+3. Mark all found content as "safe: true" unless it's illegal content
+4. Generate a supportive motivation message (not warning, not blocking)
+5. Include direct URLs to the content
+
+FOR IMAGES: Provide direct image file URLs that can be displayed in an img tag. Include image dimensions in the "duration" field if known.
 
 YOUR TONE:
-- "You have ${remainingMinutes} minutes remaining. I'll start tracking when you begin."
-- "Good progress - you're on day ${currentDay}. Want me to set a reminder at halfway?"
-- "Ready when you are. I'll keep track of your time."
+- "You have ${remainingMinutes} minutes remaining."
+- "Good progress - you're on day ${currentDay}."
+- "Ready when you are."
 
 NEVER SAY:
 - "This content may harm your recovery"
@@ -73,12 +74,13 @@ Respond in JSON format:
 {
   "results": [
     {
-      "title": "Video title",
-      "url": "https://actual-url-user-wants",
-      "platform": "Platform name",
+      "title": "Content title",
+      "url": "https://direct-url-to-content",
+      "platform": "Platform/Site name",
       "thumbnail": "https://thumbnail-url-if-available",
       "description": "Brief neutral description",
-      "duration": "estimated duration",
+      "duration": "duration for videos OR dimensions for images",
+      "contentType": "${type}",
       "safe": true
     }
   ],
@@ -134,11 +136,12 @@ Respond in JSON format:
       };
     }
 
-    // Ensure all results are marked as safe (we allow viewing)
+    // Ensure all results are marked as safe and have contentType
     if (searchResults.results) {
       searchResults.results = searchResults.results.map((r: any) => ({
         ...r,
-        safe: true
+        safe: true,
+        contentType: r.contentType || type
       }));
     }
 

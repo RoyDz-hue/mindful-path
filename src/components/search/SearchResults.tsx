@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Bookmark, Clock, Heart } from "lucide-react";
+import { Play, Bookmark, Heart, Download, Image as ImageIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchResult {
   title: string;
@@ -9,6 +10,7 @@ interface SearchResult {
   thumbnail?: string;
   description: string;
   duration?: string;
+  contentType?: "video" | "image";
   safe: boolean;
 }
 
@@ -29,6 +31,34 @@ export function SearchResults({
   onSave,
   onSuggestionClick 
 }: SearchResultsProps) {
+  const { toast } = useToast();
+
+  const handleDownload = async (result: SearchResult) => {
+    try {
+      const response = await fetch(result.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const extension = result.url.split('.').pop()?.split('?')[0] || 'jpg';
+      a.download = `${result.title.replace(/[^a-z0-9]/gi, '_')}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast({
+        title: "Downloaded",
+        description: "Image saved successfully.",
+      });
+    } catch (error) {
+      // Fallback: open in new tab for manual save
+      window.open(result.url, '_blank');
+      toast({
+        title: "Opening Image",
+        description: "Right-click to save the image.",
+      });
+    }
+  };
   // Show supportive motivation message (not warning)
   const MotivationBanner = () => (
     motivation ? (
@@ -90,74 +120,123 @@ export function SearchResults({
     );
   }
 
+  const isImageSearch = results.length > 0 && results[0]?.contentType === "image";
+
   return (
     <div className="space-y-4">
       <MotivationBanner />
       
-      <div className="grid gap-4">
-        {results.map((result, index) => (
-          <Card key={index} variant="elevated" className="overflow-hidden hover:shadow-glow transition-shadow">
-            <CardContent className="p-0">
-              <div className="flex flex-col sm:flex-row">
-                {/* Thumbnail */}
-                <div className="relative w-full sm:w-48 h-32 bg-muted flex-shrink-0">
-                  {result.thumbnail ? (
-                    <img 
-                      src={result.thumbnail} 
-                      alt={result.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-sanctuary">
-                      <Play className="w-8 h-8 text-primary-foreground" />
-                    </div>
-                  )}
+      {isImageSearch ? (
+        // Image Grid Layout
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {results.map((result, index) => (
+            <Card key={index} variant="elevated" className="overflow-hidden hover:shadow-glow transition-shadow group">
+              <CardContent className="p-0">
+                <div className="relative aspect-square bg-muted">
+                  <img 
+                    src={result.thumbnail || result.url} 
+                    alt={result.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => handleDownload(result)}
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => onSave(result)}
+                    >
+                      <Bookmark className="w-4 h-4" />
+                    </Button>
+                  </div>
                   {result.duration && (
                     <span className="absolute bottom-2 right-2 bg-foreground/80 text-background text-xs px-1.5 py-0.5 rounded">
                       {result.duration}
                     </span>
                   )}
                 </div>
-                
-                {/* Content */}
-                <div className="flex-1 p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-lg line-clamp-1">{result.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{result.description}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                          {result.platform}
-                        </span>
+                <div className="p-2">
+                  <p className="text-sm font-medium line-clamp-1">{result.title}</p>
+                  <p className="text-xs text-muted-foreground">{result.platform}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        // Video List Layout
+        <div className="grid gap-4">
+          {results.map((result, index) => (
+            <Card key={index} variant="elevated" className="overflow-hidden hover:shadow-glow transition-shadow">
+              <CardContent className="p-0">
+                <div className="flex flex-col sm:flex-row">
+                  {/* Thumbnail */}
+                  <div className="relative w-full sm:w-48 h-32 bg-muted flex-shrink-0">
+                    {result.thumbnail ? (
+                      <img 
+                        src={result.thumbnail} 
+                        alt={result.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-sanctuary">
+                        <Play className="w-8 h-8 text-primary-foreground" />
                       </div>
-                    </div>
-                    
-                    {/* Actions */}
-                    <div className="flex flex-col gap-2">
-                      <Button 
-                        variant="sanctuary" 
-                        size="sm"
-                        onClick={() => onPlay(result)}
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        Watch
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => onSave(result)}
-                      >
-                        <Bookmark className="w-4 h-4 mr-1" />
-                        Save
-                      </Button>
+                    )}
+                    {result.duration && (
+                      <span className="absolute bottom-2 right-2 bg-foreground/80 text-background text-xs px-1.5 py-0.5 rounded">
+                        {result.duration}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-lg line-clamp-1">{result.title}</h3>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{result.description}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {result.platform}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          variant="sanctuary" 
+                          size="sm"
+                          onClick={() => onPlay(result)}
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Watch
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => onSave(result)}
+                        >
+                          <Bookmark className="w-4 h-4 mr-1" />
+                          Save
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
