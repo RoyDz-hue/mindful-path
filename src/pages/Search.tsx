@@ -471,6 +471,7 @@ export default function SearchPage() {
                     onPlay={handlePlay}
                     onSave={handleSave}
                     onSuggestionClick={(suggestion) => { setQuery(suggestion); handleSearch(suggestion); }}
+                    userId={user?.id}
                   />
                 )}
               </div>
